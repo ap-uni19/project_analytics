@@ -16,3 +16,4 @@ dependencies:
   - matplotlib
   - seaborn
   - statsmodels
+  - kagglehub
