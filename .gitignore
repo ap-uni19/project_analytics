@@ -2,4 +2,5 @@
 /.DS_Store
 data/raw/536/*.csv
 data/raw/*.parquet
+data/processed/*.parquet
 models/*.pkl
