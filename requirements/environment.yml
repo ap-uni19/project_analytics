@@ -17,3 +17,4 @@ dependencies:
   - seaborn
   - statsmodels
   - kagglehub
+  - pyarrow
