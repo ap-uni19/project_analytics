@@ -19,4 +19,4 @@ dependencies:
   - kagglehub
   - pyarrow
   - plotly
-  - vegafusion
+  - streamlit
