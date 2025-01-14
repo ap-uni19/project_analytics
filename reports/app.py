@@ -1,76 +1,83 @@
 import streamlit as st
 import os
 
-# Automatisches Sammeln von HTML-Dateien aus einem Verzeichnis
-directory = "../references/plotly"
+# Verzeichnisse
+plotly_dir = "../references/plotly"
+matplotlib_dir = "../references/matplotlib"
 
-# Liste der Dateien in der Reihenfolge, wie sie im Verzeichnis vorkommen
+# Plotly-Visualisierungen mit Dropdown
+def display_plotly_visualizations_with_png():
+    st.header("Explorative Datenanalyse (EDA)")
 
-html_files = sorted(
-    [file for file in os.listdir(directory) if file.endswith(".html")],
-    key=lambda x: os.path.getmtime(os.path.join(directory, x))
-)
-# Erstelle ein Wörterbuch mit den Dateinamen und Pfaden
-html_file_paths = {
-    os.path.splitext(file)[0]: os.path.join(directory, file)
-    for file in html_files
-}
-
-# Titel der App
-st.title("Explorative Datenanalyse des Projektes Fußballer-Marktwert Vorhersage ")
-
-# Dropdown-Menü für die Visualisierungen (Reihenfolge wie im Verzeichnis)
-selected_file = st.selectbox(
-    "Wähle eine Visualisierung aus:",
-    options=html_files,  # In ursprünglicher Reihenfolge
-)
-
-# Lade und zeige die ausgewählte HTML-Datei
-file_path = html_file_paths[os.path.splitext(selected_file)[0]]
-try:
-    with open(file_path, "r") as file:
-        html_content = file.read()
-
-    # Dynamischer Titel basierend auf dem Dateinamen
-    st.markdown(f"### {selected_file.replace('_', ' ').replace('.html', '')}")
-    st.components.v1.html(html_content, height=1500,  width=900)
-except FileNotFoundError:
-    st.error(f"Die Datei '{file_path}' konnte nicht gefunden werden.")
-
-st.sidebar.header("Navigation")
-page = st.sidebar.selectbox("Seite auswählen", ["EDA", "Modelle", "Über"])
-
-if page == "EDA":
-    st.header("EDA")
-    # EDA-Inhalte hier
-elif page == "Modelle":
-    st.header("Modelle")
-    # Modell-Inhalte hier
-    directory_png = "../references/matplotlib"
-
-    png_files = sorted(
-        [ file for file in os.listdir(directory_png) if file.endswith(".png")],
-        key=lambda x: os.path.getmtime(os.path.join(directory_png, x))
-        )
-    # Erstelle ein Wörterbuch mit den Dateinamen und Pfaden
-    png_files_paths = {
-        os.path.splitext(file)[0]: os.path.join(directory_png, file)
-        for file in png_files
-    }
-    selected_file = st.selectbox(
-    "Wähle eine Visualisierung aus:",
-    options=html_files,  # In ursprünglicher Reihenfolge
+    html_files = sorted(
+        [file for file in os.listdir(plotly_dir) if file.endswith(".html")],
+        key=lambda x: os.path.getmtime(os.path.join(plotly_dir, x))
     )
-    st.title("Analyse der Ergebnisse")
-    st.image(file)
+    png_file = "01_korrelationsmatrix.png"  # Spezifische PNG-Datei
 
-else:
-    st.header("Über")
-    st.write("Beschreibung der Webseite")
+    # Kombinierte Liste für Dropdown-Menü
+    visualization_options = html_files + [png_file]
 
-st.download_button(
+    # Dropdown-Menü
+    selected_visualization = st.selectbox(
+        "Wähle eine Visualisierung aus:",
+        options=visualization_options,
+        format_func=lambda x: x.replace('_', ' ').replace('.html', '').replace('.png', '')  # Anzeigename verbessern
+    )
+
+    # Anzeige der ausgewählten Visualisierung
+    if selected_visualization.endswith(".html"):
+        file_path = os.path.join(plotly_dir, selected_visualization)
+        try:
+            with open(file_path, "r") as f:
+                html_content = f.read()
+            st.components.v1.html(html_content, height=1500, width=900)
+        except FileNotFoundError:
+            st.error(f"Die Datei '{selected_visualization}' konnte nicht gefunden werden.")
+    elif selected_visualization == png_file:
+        file_path = os.path.join(matplotlib_dir, png_file)
+        if os.path.exists(file_path):
+            st.image(file_path, use_container_width=True)
+        else:
+            st.error(f"Die Datei '{png_file}' konnte nicht gefunden werden.")
+
+# Matplotlib-Bildern
+def display_matplotlib_visualizations():
+    st.header("Ergbnisse Modelle")
+    png_files = sorted(
+        [file for file in os.listdir(matplotlib_dir) if file.endswith(".png") and file != "01_korrelationsmatrix.png"],
+        key=lambda x: os.path.getmtime(os.path.join(matplotlib_dir, x))
+    )
+    if not png_files:
+        st.warning("Keine Matplotlib-Bilder gefunden.")
+        return
+
+    for file in png_files:
+        file_path = os.path.join(matplotlib_dir, file)
+        st.markdown(f"### {file.replace('_', ' ').replace('.png', '')}")
+        st.image(file_path, use_container_width=True)
+
+# Sidebar-Navigation
+st.sidebar.header("Navigation")
+page = st.sidebar.selectbox("Seite auswählen", ["Einführung", "EDA", "Modelle", "Über"])
+
+# Sidebar Logik
+if page == "Einführung":
+    st.header("Fussball-Martkwerte vorhersagen")
+elif page == "EDA":
+    display_plotly_visualizations_with_png()
+elif page == "Modelle":
+    display_matplotlib_visualizations()
+elif page == "Über":
+    st.header("Über die Webseite")
+    st.write("Autor: Antonino Piloro")
+    st.write("Diese Webseite zeigt Ergebnisse des Projektes, zur Vorhersage von Fussball-Martkwerte, welche sich in Powerpoint, explorativen Datenanalyse (EDA) und der Modellierung untertzeilt.")
+    st.write("Zusätzlich können Sie den Bericht im PDF-Format und die Powerpoint herunterladen.")
+
+# Download-Button für PDF PowerPoint
+st.sidebar.download_button(
     label="PDF herunterladen",
-    data=open('report.pdf', 'rb'),
+    data=open('report.pdf', 'rb').read(),
     file_name='report.pdf',
-    mime='text/csv'
+    mime='application/pdf'
 )
