@@ -5,4 +5,4 @@ data/raw/*.parquet
 data/processed/*.parquet
 models/*.pkl
 references/plotly/*.html
-references/matplotlib/*.png
+#references/matplotlib/*.png
